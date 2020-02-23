@@ -59,8 +59,6 @@ static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
-static void pCb_adc_Cplt(ADC_HandleTypeDef *hadc);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -101,12 +99,7 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
-  if (HAL_ADC_RegisterCallback(&hadc1, HAL_ADC_CONVERSION_COMPLETE_CB_ID, pCb_adc_Cplt)!= HAL_OK)
-  {
-  	Error_Handler();
-  }
-
-  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcSample, sizeof(adcSample)) != HAL_OK)
+  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcSample, SIZE_BUFFER) != HAL_OK)
   {
   	Error_Handler();
   }
@@ -124,7 +117,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
   	if (adcConvDone)
   	{
-  	  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcSample, sizeof(adcSample)) != HAL_OK)
+  	  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcSample, SIZE_BUFFER) != HAL_OK)
   	  {
   	  	Error_Handler();
   	  }
@@ -235,7 +228,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.NbrOfDiscConversion = 1;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc1.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -346,13 +339,6 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
-	if (hadc->Instance == ADC1)
-	{
-	}
-}
-
-static void pCb_adc_Cplt(ADC_HandleTypeDef *hadc)
 {
 	adcConvDone = true;
 }
