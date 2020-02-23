@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdbool.h>
 
 /* USER CODE END Includes */
 
@@ -48,7 +49,7 @@ DMA_HandleTypeDef hdma_adc1;
 
 /* USER CODE BEGIN PV */
 static __IO uint16_t adcSample[SIZE_BUFFER];
-
+static __IO bool adcConvDone = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,6 +58,8 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
+
+static void pCb_adc_Cplt(ADC_HandleTypeDef *hadc);
 
 /* USER CODE END PFP */
 
@@ -98,6 +101,11 @@ int main(void)
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
+  if (HAL_ADC_RegisterCallback(&hadc1, HAL_ADC_CONVERSION_COMPLETE_CB_ID, pCb_adc_Cplt)!= HAL_OK)
+  {
+  	Error_Handler();
+  }
+
   if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcSample, sizeof(adcSample)) != HAL_OK)
   {
   	Error_Handler();
@@ -114,6 +122,14 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+  	if (adcConvDone)
+  	{
+  	  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adcSample, sizeof(adcSample)) != HAL_OK)
+  	  {
+  	  	Error_Handler();
+  	  }
+  		adcConvDone = false;
+  	}
   }
   /* USER CODE END 3 */
 }
@@ -333,9 +349,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 {
 	if (hadc->Instance == ADC1)
 	{
-
-
 	}
+}
+
+static void pCb_adc_Cplt(ADC_HandleTypeDef *hadc)
+{
+	adcConvDone = true;
 }
 
 /* USER CODE END 4 */
